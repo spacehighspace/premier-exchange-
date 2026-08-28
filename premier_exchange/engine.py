@@ -2,7 +2,9 @@ from decimal import Decimal
 
 from .adapters import MarketDataAdapter, TradingAdapter
 from .config import PlatformConfig
-from .models import AuditEvent, Order, OrderSide, OrderType, Position, Signal, OrderStatus
+from .models import Asset, AuditEvent, Order, OrderSide, OrderType, Position, Signal, OrderStatus
+
+SIGNAL_CONFIDENCE_THRESHOLD = Decimal("0.5")
 from .risk import RiskEngine
 
 
@@ -17,12 +19,13 @@ class TradingEngine:
         self.positions = {}
         self.open_orders: set[str] = set()
 
-    def execute(self, order: Order):
+    def execute(self, order: Order) -> Order:
         price = self.market.price(order.asset)
         self.risk.validate(order, price, self.positions, open_orders=len(self.open_orders))
+        self.open_orders.add(order.id)
         submitted = self.broker.submit(order)
-        self.open_orders.discard(submitted.id)
         if submitted.status is OrderStatus.FILLED:
+            self.open_orders.discard(order.id)
             current = self.positions.get(order.asset.symbol)
             old_quantity = current.quantity if current else Decimal("0")
             signed_quantity = order.quantity if order.side is OrderSide.BUY else -order.quantity
@@ -41,9 +44,9 @@ class TradingEngine:
         self.audit_log.append(AuditEvent("order_submitted", {"order_id": order.id, "symbol": order.asset.symbol}))
         return submitted
 
-    def execute_signal(self, signal: Signal, quantity: Decimal, asset):
+    def execute_signal(self, signal: Signal, quantity: Decimal, asset: Asset) -> Order:
         if signal.confidence < Decimal("0") or signal.confidence > Decimal("1"):
             raise ValueError("signal confidence must be between 0 and 1")
-        if signal.confidence < Decimal("0.5"):
+        if signal.confidence < SIGNAL_CONFIDENCE_THRESHOLD:
             raise ValueError("signal confidence is below execution threshold")
         return self.execute(Order(asset, signal.side, quantity, OrderType.MARKET))

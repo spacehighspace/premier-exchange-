@@ -2,10 +2,10 @@ from decimal import Decimal
 
 from .adapters import MarketDataAdapter, TradingAdapter
 from .config import PlatformConfig
-from .models import Asset, AuditEvent, Order, OrderSide, OrderType, Position, Signal, OrderStatus
+from .models import Asset, AuditEvent, Order, OrderSide, OrderStatus, OrderType, Position, Signal
+from .risk import RiskEngine
 
 SIGNAL_CONFIDENCE_THRESHOLD = Decimal("0.5")
-from .risk import RiskEngine
 
 
 class TradingEngine:
@@ -18,14 +18,15 @@ class TradingEngine:
         self.audit_log: list[AuditEvent] = []
         self.positions = {}
         self.open_orders: set[str] = set()
+        self.daily_loss = Decimal("0")
 
     def execute(self, order: Order) -> Order:
         price = self.market.price(order.asset)
-        self.risk.validate(order, price, self.positions, open_orders=len(self.open_orders))
-        self.open_orders.add(order.id)
+        self.risk.validate(
+            order, price, self.positions, open_orders=len(self.open_orders), daily_loss=self.daily_loss
+        )
         submitted = self.broker.submit(order)
         if submitted.status is OrderStatus.FILLED:
-            self.open_orders.discard(order.id)
             current = self.positions.get(order.asset.symbol)
             old_quantity = current.quantity if current else Decimal("0")
             signed_quantity = order.quantity if order.side is OrderSide.BUY else -order.quantity
@@ -50,3 +51,8 @@ class TradingEngine:
         if signal.confidence < SIGNAL_CONFIDENCE_THRESHOLD:
             raise ValueError("signal confidence is below execution threshold")
         return self.execute(Order(asset, signal.side, quantity, OrderType.MARKET))
+
+    def record_daily_loss(self, amount: Decimal) -> None:
+        if amount < 0:
+            raise ValueError("daily loss must not be negative")
+        self.daily_loss = amount

@@ -34,10 +34,10 @@ class PaperBroker(MarketDataAdapter, TradingAdapter):
             raise ValueError(f"no market price for {asset.symbol}") from exc
 
     def submit(self, order: Order) -> Order:
-        accepted = replace(order, status=OrderStatus.ACCEPTED)
+        accepted = replace(order, status=OrderStatus.FILLED)
         self.orders[accepted.id] = accepted
         return accepted
 
     def cancel(self, order_id: str) -> None:
         if order_id in self.orders:
-            self.orders[order_id].status = OrderStatus.CANCELLED
+            self.orders[order_id] = replace(self.orders[order_id], status=OrderStatus.CANCELLED)

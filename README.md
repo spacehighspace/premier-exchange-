@@ -35,6 +35,14 @@ from premier_exchange.dashboard import serve
 serve(engine)  # open http://127.0.0.1:8080
 ```
 
+To run the default paper-trading app directly:
+
+```bash
+python -m premier_exchange
+# or, after installation:
+premier-exchange
+```
+
 It refreshes portfolio prices and P&L every five seconds and supports paper orders
 and the risk kill switch. It intentionally binds to localhost and never enables
 live trading.

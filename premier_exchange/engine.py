@@ -21,13 +21,19 @@ class TradingEngine:
         price = self.market.price(order.asset)
         self.risk.validate(order, price, self.positions, open_orders=len(self.open_orders))
         submitted = self.broker.submit(order)
+        self.open_orders.discard(submitted.id)
         if submitted.status is OrderStatus.FILLED:
             current = self.positions.get(order.asset.symbol)
             old_quantity = current.quantity if current else Decimal("0")
             signed_quantity = order.quantity if order.side is OrderSide.BUY else -order.quantity
             new_quantity = old_quantity + signed_quantity
             if new_quantity:
-                self.positions[order.asset.symbol] = Position(order.asset.symbol, new_quantity, price)
+                if current and signed_quantity > 0:
+                    total_cost = current.quantity * current.average_price + order.quantity * price
+                    average_price = total_cost / new_quantity
+                else:
+                    average_price = current.average_price if current else price
+                self.positions[order.asset.symbol] = Position(order.asset.symbol, new_quantity, average_price)
             else:
                 self.positions.pop(order.asset.symbol, None)
         else:
@@ -36,7 +42,7 @@ class TradingEngine:
         return submitted
 
     def execute_signal(self, signal: Signal, quantity: Decimal, asset):
-        if not Decimal("0") <= signal.confidence <= Decimal("1"):
+        if signal.confidence < Decimal("0") or signal.confidence > Decimal("1"):
             raise ValueError("signal confidence must be between 0 and 1")
         if signal.confidence < Decimal("0.5"):
             raise ValueError("signal confidence is below execution threshold")

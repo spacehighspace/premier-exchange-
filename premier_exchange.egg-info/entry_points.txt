@@ -1,0 +1,2 @@
+[console_scripts]
+premier-exchange = premier_exchange.app:main

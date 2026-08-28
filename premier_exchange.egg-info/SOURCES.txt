@@ -1,7 +1,9 @@
 README.md
 pyproject.toml
 premier_exchange/__init__.py
+premier_exchange/__main__.py
 premier_exchange/adapters.py
+premier_exchange/app.py
 premier_exchange/config.py
 premier_exchange/dashboard.py
 premier_exchange/engine.py
@@ -11,6 +13,7 @@ premier_exchange/security.py
 premier_exchange.egg-info/PKG-INFO
 premier_exchange.egg-info/SOURCES.txt
 premier_exchange.egg-info/dependency_links.txt
+premier_exchange.egg-info/entry_points.txt
 premier_exchange.egg-info/requires.txt
 premier_exchange.egg-info/top_level.txt
 tests/test_platform.py

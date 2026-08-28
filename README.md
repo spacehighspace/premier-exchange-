@@ -24,3 +24,17 @@ pytest
 Before live use, add backtesting with fees/slippage, reconciliation, monitoring
 and alerts, immutable audit persistence, access controls, failure-recovery tests,
 regulatory/tax/custody review, and a staged paper-to-limited-funds rollout.
+
+## Paper portfolio dashboard
+
+The dependency-free dashboard can be mounted on a configured `TradingEngine`:
+
+```python
+from premier_exchange.dashboard import serve
+
+serve(engine)  # open http://127.0.0.1:8080
+```
+
+It refreshes portfolio prices and P&L every five seconds and supports paper orders
+and the risk kill switch. It intentionally binds to localhost and never enables
+live trading.

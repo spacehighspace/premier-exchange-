@@ -32,6 +32,8 @@ class TradingEngine:
             signed_quantity = order.quantity if order.side is OrderSide.BUY else -order.quantity
             new_quantity = old_quantity + signed_quantity
             if new_quantity:
+                if signed_quantity < 0 and current is None:
+                    raise ValueError("cannot sell without an existing position")
                 if current and signed_quantity > 0:
                     total_cost = current.quantity * current.average_price + order.quantity * price
                     average_price = total_cost / new_quantity
@@ -52,7 +54,13 @@ class TradingEngine:
             raise ValueError("signal confidence is below execution threshold")
         return self.execute(Order(asset, signal.side, quantity, OrderType.MARKET))
 
+    def resolve_order(self, order_id: str, status: OrderStatus) -> None:
+        """Remove an order from risk accounting once it is filled or cancelled."""
+        if status in (OrderStatus.FILLED, OrderStatus.CANCELLED, OrderStatus.REJECTED):
+            self.open_orders.discard(order_id)
+
     def record_daily_loss(self, amount: Decimal) -> None:
+        """Set the cumulative loss for the current trading day."""
         if amount < 0:
             raise ValueError("daily loss must not be negative")
         self.daily_loss = amount

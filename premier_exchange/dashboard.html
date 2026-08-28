@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Premier Exchange · Portfolio</title>
+  <style>
+    :root{--bg:#0b1118;--panel:#111b27;--line:#213142;--muted:#8da0b5;--text:#edf4fb;--green:#31d69a;--red:#ff6f78;--blue:#6ba8ff}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,sans-serif}
+    .shell{display:flex;min-height:100vh}.side{width:230px;padding:28px 20px;border-right:1px solid var(--line);background:#0d151f}
+    .brand{font-size:18px;font-weight:750;letter-spacing:-.5px;margin-bottom:48px}.brand span{color:var(--green)}
+    nav a{display:block;padding:12px 14px;margin:4px 0;color:var(--muted);border-radius:8px;text-decoration:none}nav a.active,nav a:hover{background:#172638;color:var(--text)}
+    main{max-width:1280px;width:100%;padding:34px 42px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+    h1{font-size:27px;margin:0 0 6px;letter-spacing:-.7px}.subtitle{color:var(--muted)}.status{display:flex;gap:9px;align-items:center;color:var(--green);font-size:12px}
+    .dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 12px var(--green)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+    .card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}.card{padding:19px}.label{color:var(--muted);font-size:12px;margin-bottom:10px}.value{font-size:24px;font-weight:700}.change{font-size:12px;margin-top:9px;color:var(--green)}.negative{color:var(--red)}
+    .layout{display:grid;grid-template-columns:1.45fr 1fr;gap:18px}.panel{padding:21px}.panel h2{font-size:15px;margin:0 0 18px}.table{width:100%;border-collapse:collapse}.table th{text-align:left;color:var(--muted);font-weight:500;font-size:11px;padding:0 8px 12px}.table td{padding:15px 8px;border-top:1px solid var(--line)}.symbol{font-weight:700}.secondary{color:var(--muted);font-size:11px;margin-top:3px}
+    .controls{display:grid;gap:12px}.controls label{color:var(--muted);font-size:12px}.controls input,.controls select{width:100%;padding:11px;background:#0c141e;border:1px solid var(--line);border-radius:7px;color:var(--text);margin-top:6px}
+    button{border:0;border-radius:7px;padding:11px 14px;color:#07120f;background:var(--green);font-weight:700;cursor:pointer}button:hover{filter:brightness(1.1)}button.danger{background:var(--red);color:#230b0e}button.secondary-btn{background:#25374a;color:var(--text)}
+    .actions{display:flex;gap:10px}.notice{min-height:18px;color:var(--muted);font-size:12px}.risk{margin-top:20px;padding:13px;border-radius:8px;background:#17231f;color:var(--green);font-size:12px}.risk.halted{background:#29191d;color:var(--red)}
+    @media(max-width:900px){.side{display:none}main{padding:24px 18px}.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}@media(max-width:500px){.grid{grid-template-columns:1fr 1fr}.value{font-size:19px}}
+  </style>
+</head>
+<body><div class="shell"><aside class="side"><div class="brand">premier<span>exchange</span></div><nav><a class="active" href="/">Overview</a><a href="#positions">Positions</a><a href="#trade">Trade</a><a href="#risk">Risk controls</a></nav></aside>
+<main><div class="top"><div><h1>Portfolio overview</h1><div class="subtitle">Paper account · live market snapshot</div></div><div class="status"><i class="dot"></i><span id="updated">Connecting…</span></div></div>
+<section class="grid"><div class="card"><div class="label">Total equity</div><div class="value" id="equity">—</div><div class="change" id="pnl">—</div></div><div class="card"><div class="label">Cash balance</div><div class="value" id="cash">—</div><div class="change">Available to trade</div></div><div class="card"><div class="label">Invested</div><div class="value" id="invested">—</div><div class="change">Across positions</div></div><div class="card"><div class="label">Market value</div><div class="value" id="market">—</div><div class="change">Marked to market</div></div></section>
+<div class="layout"><section class="panel" id="positions"><h2>Positions</h2><table class="table"><thead><tr><th>Asset</th><th>Quantity</th><th>Last price</th><th>Value</th><th>P&L</th></tr></thead><tbody id="positions"><tr><td colspan="5" class="secondary">No open positions</td></tr></tbody></table></section>
+<section class="panel" id="trade"><h2>Place paper order</h2><form class="controls" id="order-form"><label>Asset<select id="symbol"></select></label><label>Side<select id="side"><option value="buy">Buy</option><option value="sell">Sell</option></select></label><label>Quantity<input id="quantity" type="number" min="0.00000001" step="any" required placeholder="0.10"></label><div class="actions"><button type="submit">Submit order</button><button type="button" class="secondary-btn" id="refresh">Refresh</button></div><div class="notice" id="notice"></div></form><div class="risk" id="risk">● Trading enabled · paper mode</div><button type="button" class="danger" id="halt" style="margin-top:12px;width:100%">Halt trading</button></section></div>
+</main></div>
+<script>
+const $=id=>document.getElementById(id), money=v=>Number(v).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:2});
+let halted=false;
+async function refresh(){try{const d=await (await fetch('/api/portfolio')).json(); $('equity').textContent=money(d.equity);$('cash').textContent=money(d.cash);$('invested').textContent=money(d.invested);$('market').textContent=money(d.market_value);$('pnl').textContent=(Number(d.pnl)>=0?'+':'')+money(d.pnl)+' total P&L';$('pnl').className='change '+(Number(d.pnl)<0?'negative':'');halted=d.kill_switch;$('risk').className='risk '+(halted?'halted':'');$('risk').textContent=halted?'● Trading halted by kill switch':'● Trading enabled · paper mode';$('halt').textContent=halted?'Resume trading':'Halt trading';$('halt').className=halted?'secondary-btn':'danger';$('updated').textContent='Updated '+new Date().toLocaleTimeString();$('symbol').innerHTML=Object.keys(d.prices).map(s=>`<option>${s}</option>`).join('');$('positions').innerHTML=d.positions.length?d.positions.map(p=>`<tr><td class="symbol">${p.symbol}<div class="secondary">paper market</div></td><td>${p.quantity}</td><td>${money(p.price)}</td><td>${money(p.value)}</td><td class="${Number(p.pnl)<0?'negative':''}">${money(p.pnl)}</td></tr>`).join(''):'<tr><td colspan="5" class="secondary">No open positions</td></tr>'}catch(e){$('updated').textContent='Connection unavailable'}} 
+$('order-form').onsubmit=async e=>{e.preventDefault();$('notice').textContent='Submitting…';const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:$('symbol').value,side:$('side').value,quantity:$('quantity').value})});const d=await r.json();$('notice').textContent=r.ok?`${d.side.toUpperCase()} order filled · ${d.quantity} ${d.symbol}`:d.error;if(r.ok){$('quantity').value='';refresh()}};
+$('halt').onclick=async()=>{await fetch('/api/kill-switch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({halt:!halted})});refresh()};$('refresh').onclick=refresh;refresh();setInterval(refresh,5000);
+</script></body></html>

@@ -3,6 +3,7 @@ pyproject.toml
 premier_exchange/__init__.py
 premier_exchange/adapters.py
 premier_exchange/config.py
+premier_exchange/dashboard.py
 premier_exchange/engine.py
 premier_exchange/models.py
 premier_exchange/risk.py

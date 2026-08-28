@@ -1,1 +1,26 @@
 # premier-exchange-
+
+Paper-first foundation for a monitored, automated trading platform.
+
+## Safety boundary
+
+This project is not financial advice and does not promise profit. It defaults to
+paper trading, has no live broker integration, and rejects enabling live trading
+from application configuration. Production use requires reviewed broker and
+custody controls, jurisdiction and tax review, and operational approval.
+
+The package provides explicit asset/exchange/jurisdiction configuration,
+encrypted API-secret storage, common market-data and trading adapter interfaces,
+a deterministic paper broker, order/risk validation, audit events, a kill switch,
+and bounded signal execution.
+
+## Development
+
+```bash
+python -m pip install -e . pytest
+pytest
+```
+
+Before live use, add backtesting with fees/slippage, reconciliation, monitoring
+and alerts, immutable audit persistence, access controls, failure-recovery tests,
+regulatory/tax/custody review, and a staged paper-to-limited-funds rollout.

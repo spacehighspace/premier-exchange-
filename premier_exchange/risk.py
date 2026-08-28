@@ -35,7 +35,7 @@ class RiskEngine:
         current = positions.get(order.asset.symbol)
         quantity = (current.quantity if current else Decimal("0"))
         projected = quantity + order.quantity if order.side is OrderSide.BUY else quantity - order.quantity
-        if projected * price > self.limits.max_position_notional:
-            raise ValueError("position limit exceeded")
         if projected < 0:
             raise ValueError("cannot sell more than the current position")
+        if abs(projected) * price > self.limits.max_position_notional:
+            raise ValueError("position limit exceeded")

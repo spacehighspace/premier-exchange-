@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import replace
 from decimal import Decimal
 
 from .models import Asset, Order, OrderStatus
@@ -33,9 +34,9 @@ class PaperBroker(MarketDataAdapter, TradingAdapter):
             raise ValueError(f"no market price for {asset.symbol}") from exc
 
     def submit(self, order: Order) -> Order:
-        order.status = OrderStatus.ACCEPTED
-        self.orders[order.id] = order
-        return order
+        accepted = replace(order, status=OrderStatus.ACCEPTED)
+        self.orders[accepted.id] = accepted
+        return accepted
 
     def cancel(self, order_id: str) -> None:
         if order_id in self.orders:

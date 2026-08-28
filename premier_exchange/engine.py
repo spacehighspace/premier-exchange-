@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from .adapters import MarketDataAdapter, TradingAdapter
 from .config import PlatformConfig
-from .models import AuditEvent, Order, Signal
+from .models import AuditEvent, Order, OrderType, Signal
 from .risk import RiskEngine
 
 
@@ -28,5 +28,4 @@ class TradingEngine:
             raise ValueError("signal confidence must be between 0 and 1")
         if signal.confidence < Decimal("0.5"):
             raise ValueError("signal confidence is below execution threshold")
-        from .models import OrderSide, OrderType
         return self.execute(Order(asset, signal.side, quantity, OrderType.MARKET))

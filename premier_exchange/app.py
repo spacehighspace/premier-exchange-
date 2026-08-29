@@ -26,3 +26,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("--port", default=8080, type=int, help="port to bind (default: 8080)")
     args = parser.parse_args(argv)
     serve(build_engine(), host=args.host, port=args.port)
+
+
+if __name__ == "__main__":
+    main()

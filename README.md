@@ -38,6 +38,8 @@ serve(engine)  # open http://127.0.0.1:8080
 To run the default paper-trading app directly:
 
 ```bash
+python main.py
+# or:
 python -m premier_exchange
 # or, after installation:
 premier-exchange

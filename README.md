@@ -41,6 +41,8 @@ To run the default paper-trading app directly:
 python main.py
 # or:
 python -m premier_exchange
+# or:
+python -m premier_exchange.app
 # or, after installation:
 premier-exchange
 ```
